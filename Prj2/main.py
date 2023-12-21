@@ -1,5 +1,6 @@
 import os
 import pygame
+import random
 
 pygame.init()
 
@@ -19,6 +20,29 @@ def load_image(name, color_key=None):
     else:
         image = image.convert_alpha()
     return image
+
+
+class Puck(pygame.sprite.Sprite):
+    def __init__(self, radius, x, y):
+        super().__init__(all_sprites)
+        self.radius = radius
+        self.image = pygame.Surface((2 * radius, 2 * radius), pygame.SRCALPHA, 32)
+        pygame.draw.circle(self.image, pygame.Color("Black"), (radius, radius), radius)
+        self.rect = pygame.Rect(x, y, 2 * radius, 2 * radius)
+        self.vx = random.randint(-5, 5)
+        self.vy = random.randrange(-5, 5)
+        while self.vx == 0:
+            self.vx = random.randint(-5, 5)
+
+    def update(self):
+        self.rect = self.rect.move(self.vx, self.vy)
+        if pygame.sprite.spritecollideany(self, horizontal_borders):
+            self.vy = -self.vy
+        if pygame.sprite.spritecollideany(self, vertical_borders):
+            self.vx = -self.vx
+        if pygame.sprite.spritecollideany(self, bita):
+            self.vx = -self.vx
+            self.vy = -self.vy
 
 
 class Border(pygame.sprite.Sprite):
@@ -48,15 +72,18 @@ bita1_image = load_image('bita1.png', -1)
 bita1 = pygame.sprite.Sprite(all_sprites)
 bita1.image = bita1_image
 bita1.rect = bita1.image.get_rect()
+bita = pygame.sprite.Group()
 bita1.rect.x = 100
 bita1.rect.y = 190
 
 Border(40, 20, size[0] - 80, 10)
 Border(40, size[1] - 40, size[0] - 80, 10)
-Border(40, 20, 10, 140)
-Border(40, 330, 10, 140)
-Border(size[0] - 40, 20, 10, 140)
-Border(size[0] - 40, 330, 10, 140)
+Border(40, 20, 10, 100)
+Border(40, 370, 10, 100)
+Border(size[0] - 40, 20, 10, 100)
+Border(size[0] - 40, 370, 10, 100)
+
+Puck(random.randint(15, 20), 485, 250)
 
 
 def main():
@@ -66,18 +93,19 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
         key = pygame.key.get_pressed()
-        if key[pygame.K_DOWN]:
+        if key[pygame.K_s] and bita1.rect.y <= 360:
             bita1.rect.top += speed
-        elif key[pygame.K_UP]:
+        elif key[pygame.K_w] and bita1.rect.y >= 30:
             bita1.rect.top -= speed
-        elif key[pygame.K_LEFT]:
+        elif key[pygame.K_a] and bita1.rect.x >= 40:
             bita1.rect.left -= speed
-        elif key[pygame.K_RIGHT]:
+        elif key[pygame.K_d] and bita1.rect.x <= 370:
             bita1.rect.left += speed
         screen.fill((255, 255, 255))
         all_sprites.draw(screen)
+        all_sprites.update()
         pygame.display.flip()
-        clock.tick(50)
+        clock.tick(60)
 
 
 if __name__ == '__main__':
