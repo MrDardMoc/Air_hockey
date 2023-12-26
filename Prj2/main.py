@@ -40,9 +40,10 @@ class Puck(pygame.sprite.Sprite):
             self.vy = -self.vy
         if pygame.sprite.spritecollideany(self, vertical_borders):
             self.vx = -self.vx
-        if pygame.sprite.spritecollideany(self, bita):
-            self.vx = -self.vx
-            self.vy = -self.vy
+        if pygame.sprite.spritecollideany(self, bits):
+            if (bita1.rect.top < self.rect.top and bita1.rect.left < self.rect.left or
+                    bita1.rect.top > self.rect.top and bita1.rect.left > self.rect.left):
+                self.vx = -self.vx
 
 
 class Border(pygame.sprite.Sprite):
@@ -61,6 +62,7 @@ class Border(pygame.sprite.Sprite):
 all_sprites = pygame.sprite.Group()
 horizontal_borders = pygame.sprite.Group()
 vertical_borders = pygame.sprite.Group()
+bits = pygame.sprite.Group()
 
 size = width, height = 1000, 500
 speed = 4
@@ -69,12 +71,12 @@ pygame.display.set_caption('Аэрохоккей')
 clock = pygame.time.Clock()
 
 bita1_image = load_image('bita1.png', -1)
-bita1 = pygame.sprite.Sprite(all_sprites)
+bita1 = pygame.sprite.Sprite(bits)
 bita1.image = bita1_image
 bita1.rect = bita1.image.get_rect()
-bita = pygame.sprite.Group()
 bita1.rect.x = 100
 bita1.rect.y = 190
+all_sprites.add(bits)
 
 Border(40, 20, size[0] - 80, 10)
 Border(40, size[1] - 40, size[0] - 80, 10)
@@ -92,6 +94,7 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+        all_sprites.update()
         key = pygame.key.get_pressed()
         if key[pygame.K_s] and bita1.rect.y <= 360:
             bita1.rect.top += speed
@@ -103,7 +106,6 @@ def main():
             bita1.rect.left += speed
         screen.fill((255, 255, 255))
         all_sprites.draw(screen)
-        all_sprites.update()
         pygame.display.flip()
         clock.tick(60)
 
