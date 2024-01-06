@@ -41,19 +41,31 @@ def load_image(name, color_key=None):
     return image
 
 
-class Puck(pygame.sprite.Sprite):
-    def __init__(self, radius, x, y):
+class AnimatedPuck(pygame.sprite.Sprite):
+    def __init__(self, sheet, columns, rows, x, y):
         super().__init__(all_sprites)
-        self.radius = radius
-        self.image = pygame.Surface((2 * radius, 2 * radius), pygame.SRCALPHA, 32)
-        pygame.draw.circle(self.image, pygame.Color("Black"), (radius, radius), radius)
-        self.rect = pygame.Rect(x, y, 2 * radius, 2 * radius)
+        self.frames = []
+        self.cut_sheet(sheet, columns, rows)
+        self.cur_frame = 0
+        self.image = self.frames[self.cur_frame]
+        self.rect = self.rect.move(x, y)
         self.vx = 0
         self.vy = 0
         self.flag = 0
-        self.puck_speed = [-8, -7, -6, -5, 5, 6, 7, 8]
+        self.puck_speed = [-7, -6, -5, 5, 6, 7]
+
+    def cut_sheet(self, sheet, columns, rows):
+        self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
+                                sheet.get_height() // rows)
+        for j in range(rows):
+            for i in range(columns):
+                frame_location = (self.rect.w * i, self.rect.h * j)
+                self.frames.append(sheet.subsurface(pygame.Rect(
+                    frame_location, self.rect.size)))
 
     def update(self):
+        self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+        self.image = self.frames[self.cur_frame]
         if (((bita1.rect.x != 100 or bita1.rect.y != 220) or (bita2.rect.x != 850 or bita2.rect.y != 220))
                 and self.flag != 1):
             self.flag = 1
@@ -129,8 +141,7 @@ Border(40, 370 + (100 - height_vert_bord), 10, height_vert_bord)
 Border(size[0] - 40, 20, 10, height_vert_bord)
 Border(size[0] - 40, 370 + (100 - height_vert_bord), 10, height_vert_bord)
 
-radius_puck = random.randint(10, 20)
-Puck(radius_puck, 500 - radius_puck, 230)
+AnimatedPuck(load_image("circle_der.png", -1), 8, 1, 475, 225)
 
 
 def main():
@@ -141,7 +152,7 @@ def main():
                 running = False
         all_sprites.update()
         movement(pygame.key.get_pressed())
-        screen.fill((255, 255, 255))
+        screen.fill((pygame.Color("White")))
         pygame.draw.line(screen, pygame.Color("Red"), (500, 20), (500, size[1] - 40), 4)
         all_sprites.draw(screen)
         pygame.display.flip()
