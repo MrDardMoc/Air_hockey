@@ -1,8 +1,68 @@
 import os
 import pygame
 import random
+import sys
 
 pygame.init()
+size = width, height = 1000, 500
+screen_rect = (0, 0, width, height)
+speed = 4
+screen = pygame.display.set_mode(size)
+pygame.display.set_caption('Аэрохоккей')
+clock = pygame.time.Clock()
+FPS = 60
+
+
+def load_image(name, color_key=None):
+    fullname = os.path.join('data', name)
+    try:
+        image = pygame.image.load(fullname).convert()
+    except pygame.error as message:
+        print('Cannot load image:', name)
+        raise SystemExit(message)
+
+    if color_key is not None:
+        if color_key == -1:
+            color_key = image.get_at((0, 0))
+        image.set_colorkey(color_key)
+    else:
+        image = image.convert_alpha()
+    return image
+
+
+def terminate():
+    pygame.quit()
+    sys.exit()
+
+
+def start_screen():
+    intro_text = ["АЭРОХОККЕЙ", "",
+                  "Правила игры:",
+                  "Нужно забить шайбу в ворота противника",
+                  "Игра идёт до тех пор, пока один из игроков не получит 10 очков "]
+
+    fon = pygame.transform.scale(load_image('bg.png'), (width, height))
+    screen.blit(fon, (0, 0))
+    font = pygame.font.Font(None, 30)
+    text_coord = 50
+    for line in intro_text:
+        string_rendered = font.render(line, 1, pygame.Color('black'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 10
+        intro_rect.top = text_coord
+        intro_rect.x = 10
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.KEYDOWN or \
+                    event.type == pygame.MOUSEBUTTONDOWN:
+                return  # начинаем игру
+        pygame.display.flip()
+        clock.tick(FPS)
 
 
 def movement(key):
@@ -22,23 +82,6 @@ def movement(key):
         bita2.rect.left -= speed
     if (key[pygame.K_RIGHT] or key[pygame.K_l]) and bita2.rect.x <= 900:
         bita2.rect.left += speed
-
-
-def load_image(name, color_key=None):
-    fullname = os.path.join('data', name)
-    try:
-        image = pygame.image.load(fullname).convert()
-    except pygame.error as message:
-        print('Cannot load image:', name)
-        raise SystemExit(message)
-
-    if color_key is not None:
-        if color_key == -1:
-            color_key = image.get_at((0, 0))
-        image.set_colorkey(color_key)
-    else:
-        image = image.convert_alpha()
-    return image
 
 
 class AnimatedPuck(pygame.sprite.Sprite):
@@ -86,8 +129,37 @@ class AnimatedPuck(pygame.sprite.Sprite):
             else:
                 self.vx = -self.vx
                 self.vy = -self.vy
-            print(bita1.rect.top - self.rect.top)
-            print(bita1.rect.left - self.rect.left)
+
+        if self.rect.left < 0 or self.rect.left > 1000:
+            self.kill()
+            self.flag = 0
+            bita1.rect.x = 100
+            bita1.rect.y = 220
+            bita2.rect.x = 850
+            bita2.rect.y = 220
+
+
+class Score(AnimatedPuck):
+    def __init__(self, ap):
+        self.rect = ap.rect
+
+    def condition(self):
+        if self.rect.left >= 1000 or self.rect.left <= 0:
+            return True
+        return False
+
+    def make_text(self, bita1, bita2):
+        print(self.rect.left)
+        text = [str(bita1), str(bita2)]
+        text_coord = 420
+        font_score = pygame.font.Font(None, 30)
+        for line in text:
+            string_rendered = font_score.render(line, 1, pygame.Color('black'))
+            score_rect = string_rendered.get_rect()
+            text_coord += 50
+            score_rect.top = 40
+            score_rect.x = text_coord
+            screen.blit(string_rendered, score_rect)
 
 
 class Border(pygame.sprite.Sprite):
@@ -108,12 +180,6 @@ horizontal_borders = pygame.sprite.Group()
 vertical_borders = pygame.sprite.Group()
 bits = pygame.sprite.Group()
 
-size = width, height = 1000, 500
-speed = 4
-screen = pygame.display.set_mode(size)
-pygame.display.set_caption('Аэрохоккей')
-clock = pygame.time.Clock()
-
 radius = 30
 bita1_image = pygame.Surface((2 * radius, 2 * radius), pygame.SRCALPHA, 32)
 pygame.draw.circle(bita1_image, pygame.Color("Red"), (radius, radius), radius)
@@ -122,6 +188,7 @@ bita1.image = bita1_image
 bita1.rect = bita1.image.get_rect()
 bita1.rect.x = 100
 bita1.rect.y = 220
+bita1_score = 0
 
 bita2_image = pygame.Surface((2 * radius, 2 * radius), pygame.SRCALPHA, 32)
 pygame.draw.circle(bita2_image, pygame.Color("Blue"), (radius, radius), radius)
@@ -130,10 +197,10 @@ bita2.image = bita2_image
 bita2.rect = bita2.image.get_rect()
 bita2.rect.x = 850
 bita2.rect.y = 220
-
+bita2_score = 0
 all_sprites.add(bits)
 
-height_vert_bord = random.randint(0, 100)
+height_vert_bord = random.randint(30, 100)
 Border(40, 20, size[0] - 80, 10)
 Border(40, size[1] - 40, size[0] - 80, 10)
 Border(40, 20, 10, height_vert_bord)
@@ -141,23 +208,29 @@ Border(40, 370 + (100 - height_vert_bord), 10, height_vert_bord)
 Border(size[0] - 40, 20, 10, height_vert_bord)
 Border(size[0] - 40, 370 + (100 - height_vert_bord), 10, height_vert_bord)
 
-AnimatedPuck(load_image("circle_der.png", -1), 8, 1, 475, 225)
+ap = AnimatedPuck(load_image("circle_der.png", -1), 8, 1, 475, 225)
+start_screen()
 
+running = True
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+    movement(pygame.key.get_pressed())
+    screen.fill((pygame.Color("White")))
+    sc = Score(ap)
+    if sc.rect.left >= 1000:
+        bita1_score += 1
+    elif sc.rect.left <= 0:
+        bita2_score += 1
+    sc.make_text(bita1_score, bita2_score)
+    if sc.condition():
+        ap = AnimatedPuck(load_image("circle_der.png", -1), 8, 1, 475, 225)
+        sc = Score(ap)
+    all_sprites.update()
+    pygame.draw.line(screen, pygame.Color("Red"), (500, 20), (500, size[1] - 40), 4)
+    all_sprites.draw(screen)
+    pygame.display.flip()
+    clock.tick(FPS)
 
-def main():
-    running = True
-    while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-        all_sprites.update()
-        movement(pygame.key.get_pressed())
-        screen.fill((pygame.Color("White")))
-        pygame.draw.line(screen, pygame.Color("Red"), (500, 20), (500, size[1] - 40), 4)
-        all_sprites.draw(screen)
-        pygame.display.flip()
-        clock.tick(60)
-
-
-if __name__ == '__main__':
-    main()
+terminate()
