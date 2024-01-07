@@ -122,6 +122,19 @@ def movement(key):
         bita2.rect.left += speed
 
 
+def make_text(bita1, bita2):
+    text = [str(bita1), str(bita2)]
+    text_coord = 420
+    font_score = pygame.font.Font(None, 30)
+    for line in text:
+        string_rendered = font_score.render(line, 1, pygame.Color('black'))
+        score_rect = string_rendered.get_rect()
+        text_coord += 50
+        score_rect.top = 40
+        score_rect.x = text_coord
+        screen.blit(string_rendered, score_rect)
+
+
 class AnimatedPuck(pygame.sprite.Sprite):
     def __init__(self, sheet, columns, rows, x, y):
         super().__init__(all_sprites)
@@ -162,8 +175,8 @@ class AnimatedPuck(pygame.sprite.Sprite):
                 if ((bita2.rect.x - self.rect.x > 0 and self.vx > 0) or
                         (bita2.rect.x - self.rect.x < 0 and self.vx < 0)):
                     self.vx = -self.vx
-                elif ((bita2.rect.x - self.rect.x > 0 and self.vx < 0)
-                      or (bita2.rect.x - self.rect.x < 0 and self.vx > 0)):
+                elif ((bita2.rect.x - self.rect.x > 0 > self.vx)
+                      or (bita2.rect.x - self.rect.x < 0 < self.vx)):
                     self.vy = -self.vy
                 else:
                     self.vx = -self.vx
@@ -172,8 +185,8 @@ class AnimatedPuck(pygame.sprite.Sprite):
                 if ((bita1.rect.x - self.rect.x < 0 and self.vx < 0) or
                         (bita1.rect.x - self.rect.x > 0 and self.vx > 0)):
                     self.vx = -self.vx
-                elif ((bita1.rect.x - self.rect.x < 0 and self.vx > 0)
-                      or (bita1.rect.x - self.rect.x > 0 and self.vx < 0)):
+                elif ((bita1.rect.x - self.rect.x < 0 < self.vx)
+                      or (bita1.rect.x - self.rect.x > 0 > self.vx)):
                     self.vy = -self.vy
                 else:
                     self.vx = -self.vx
@@ -196,18 +209,6 @@ class Score(AnimatedPuck):
         if self.rect.left >= 1000 or self.rect.left <= 0:
             return True
         return False
-
-    def make_text(self, bita1, bita2):
-        text = [str(bita1), str(bita2)]
-        text_coord = 420
-        font_score = pygame.font.Font(None, 30)
-        for line in text:
-            string_rendered = font_score.render(line, 1, pygame.Color('black'))
-            score_rect = string_rendered.get_rect()
-            text_coord += 50
-            score_rect.top = 40
-            score_rect.x = text_coord
-            screen.blit(string_rendered, score_rect)
 
 
 class Border(pygame.sprite.Sprite):
@@ -273,7 +274,7 @@ while running:
         bita2_score += 1
     if bita1_score == 5 or bita2_score == 5:
         running = False
-    sc.make_text(bita1_score, bita2_score)
+    make_text(bita1_score, bita2_score)
     if sc.condition():
         ap = AnimatedPuck(load_image("circle_der.png", -1), 8, 1, 471, 220)
         sc = Score(ap)
