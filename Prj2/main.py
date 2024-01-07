@@ -39,7 +39,7 @@ def start_screen():
     intro_text = ["АЭРОХОККЕЙ", "",
                   "Правила игры:",
                   "Нужно забить шайбу в ворота противника",
-                  "Игра идёт до тех пор, пока один из игроков не получит 10 очков "]
+                  "Игра идёт до тех пор, пока один из игроков не получит 5 очков "]
 
     fon = pygame.transform.scale(load_image('bg.png'), (width, height))
     screen.blit(fon, (0, 0))
@@ -48,7 +48,7 @@ def start_screen():
     for line in intro_text:
         string_rendered = font.render(line, 1, pygame.Color('black'))
         intro_rect = string_rendered.get_rect()
-        text_coord += 10
+        text_coord += 25
         intro_rect.top = text_coord
         intro_rect.x = 10
         text_coord += intro_rect.height
@@ -60,7 +60,45 @@ def start_screen():
                 terminate()
             elif event.type == pygame.KEYDOWN or \
                     event.type == pygame.MOUSEBUTTONDOWN:
-                return  # начинаем игру
+                return
+        pygame.display.flip()
+        clock.tick(FPS)
+
+
+def final_screen(bita1_win, bita2_win):
+    final_text = ["         КОНЕЦ", "",
+                  "", "",
+                  "   ПОЗДРАВЛЯЮ"]
+    if bita1_win == 5:
+        final_text[2] = "ПОБЕДИЛ КРАСНЫЙ"
+        color = "red"
+    elif bita2_win == 5:
+        final_text[2] = "ПОБЕДИЛ СИНИЙ"
+        color = "blue"
+    else:
+        final_text[2] = "НИКТО НЕ ВЫИГРАЛ"
+        final_text[4] = ""
+        color = "black"
+    fon = pygame.transform.scale(load_image('bg.png'), (width, height))
+    screen.blit(fon, (0, 0))
+    font = pygame.font.Font(None, 35)
+    text_coord = 50
+    for line in final_text:
+        string_rendered = font.render(line, 1, pygame.Color(color))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 30
+        intro_rect.top = text_coord
+        intro_rect.x = 400
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.KEYDOWN or \
+                    event.type == pygame.MOUSEBUTTONDOWN:
+                return
         pygame.display.flip()
         clock.tick(FPS)
 
@@ -95,7 +133,7 @@ class AnimatedPuck(pygame.sprite.Sprite):
         self.vx = 0
         self.vy = 0
         self.flag = 0
-        self.puck_speed = [-7, -6, -5, 5, 6, 7]
+        self.puck_speed = [-8, 7, -6, -5, 5, 6, 7, 8]
 
     def cut_sheet(self, sheet, columns, rows):
         self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
@@ -120,15 +158,26 @@ class AnimatedPuck(pygame.sprite.Sprite):
         if pygame.sprite.spritecollideany(self, vertical_borders):
             self.vx = -self.vx
         if pygame.sprite.spritecollideany(self, bits):
-            if (bita1.rect.top < self.rect.top and bita1.rect.left < self.rect.left or
-                    bita1.rect.top > self.rect.top and bita1.rect.left < self.rect.left):
-                self.vx = -self.vx
-            elif (bita1.rect.top < self.rect.top and bita1.rect.left > self.rect.left or
-                    bita1.rect.top > self.rect.top and bita1.rect.left > self.rect.left):
-                self.vy = -self.vy
-            else:
-                self.vx = -self.vx
-                self.vy = -self.vy
+            if self.rect.x > 500:
+                if ((bita2.rect.x - self.rect.x > 0 and self.vx > 0) or
+                        (bita2.rect.x - self.rect.x < 0 and self.vx < 0)):
+                    self.vx = -self.vx
+                elif ((bita2.rect.x - self.rect.x > 0 and self.vx < 0)
+                      or (bita2.rect.x - self.rect.x < 0 and self.vx > 0)):
+                    self.vy = -self.vy
+                else:
+                    self.vx = -self.vx
+                    self.vy = -self.vy
+            if self.rect.x < 500:
+                if ((bita1.rect.x - self.rect.x < 0 and self.vx < 0) or
+                        (bita1.rect.x - self.rect.x > 0 and self.vx > 0)):
+                    self.vx = -self.vx
+                elif ((bita1.rect.x - self.rect.x < 0 and self.vx > 0)
+                      or (bita1.rect.x - self.rect.x > 0 and self.vx < 0)):
+                    self.vy = -self.vy
+                else:
+                    self.vx = -self.vx
+                    self.vy = -self.vy
 
         if self.rect.left < 0 or self.rect.left > 1000:
             self.kill()
@@ -149,7 +198,6 @@ class Score(AnimatedPuck):
         return False
 
     def make_text(self, bita1, bita2):
-        print(self.rect.left)
         text = [str(bita1), str(bita2)]
         text_coord = 420
         font_score = pygame.font.Font(None, 30)
@@ -200,7 +248,7 @@ bita2.rect.y = 220
 bita2_score = 0
 all_sprites.add(bits)
 
-height_vert_bord = random.randint(30, 100)
+height_vert_bord = random.randint(20, 100)
 Border(40, 20, size[0] - 80, 10)
 Border(40, size[1] - 40, size[0] - 80, 10)
 Border(40, 20, 10, height_vert_bord)
@@ -208,7 +256,7 @@ Border(40, 370 + (100 - height_vert_bord), 10, height_vert_bord)
 Border(size[0] - 40, 20, 10, height_vert_bord)
 Border(size[0] - 40, 370 + (100 - height_vert_bord), 10, height_vert_bord)
 
-ap = AnimatedPuck(load_image("circle_der.png", -1), 8, 1, 475, 225)
+ap = AnimatedPuck(load_image("circle_der.png", -1), 8, 1, 471, 220)
 start_screen()
 
 running = True
@@ -223,9 +271,11 @@ while running:
         bita1_score += 1
     elif sc.rect.left <= 0:
         bita2_score += 1
+    if bita1_score == 5 or bita2_score == 5:
+        running = False
     sc.make_text(bita1_score, bita2_score)
     if sc.condition():
-        ap = AnimatedPuck(load_image("circle_der.png", -1), 8, 1, 475, 225)
+        ap = AnimatedPuck(load_image("circle_der.png", -1), 8, 1, 471, 220)
         sc = Score(ap)
     all_sprites.update()
     pygame.draw.line(screen, pygame.Color("Red"), (500, 20), (500, size[1] - 40), 4)
@@ -233,4 +283,4 @@ while running:
     pygame.display.flip()
     clock.tick(FPS)
 
-terminate()
+final_screen(bita1_score, bita2_score)
