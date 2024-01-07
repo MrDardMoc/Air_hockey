@@ -66,14 +66,17 @@ def start_screen():
 
 
 def final_screen(bita1_win, bita2_win):
-    final_text = ["         КОНЕЦ", "",
+    final_text = ["          КОНЕЦ", "",
                   "", "",
-                  "   ПОЗДРАВЛЯЮ"]
+                  "   ПОЗДРАВЛЯЮ", "",
+                  "Подсчёт результатов:", "",
+                  f"КРАСНАЯ БИТА: {str(bita1_win)}", "",
+                  f"СИНЯЯ БИТА: {str(bita2_win)}"]
     if bita1_win == 5:
-        final_text[2] = "ПОБЕДИЛ КРАСНЫЙ"
+        final_text[2] = "ПОБЕДИЛА КРАСНАЯ БИТА"
         color = "red"
     elif bita2_win == 5:
-        final_text[2] = "ПОБЕДИЛ СИНИЙ"
+        final_text[2] = "ПОБЕДИЛА СИНЯЯ БИТА"
         color = "blue"
     else:
         final_text[2] = "НИКТО НЕ ВЫИГРАЛ"
@@ -82,13 +85,13 @@ def final_screen(bita1_win, bita2_win):
     fon = pygame.transform.scale(load_image('bg.png'), (width, height))
     screen.blit(fon, (0, 0))
     font = pygame.font.Font(None, 35)
-    text_coord = 50
+    text_coord = 40
     for line in final_text:
         string_rendered = font.render(line, 1, pygame.Color(color))
         intro_rect = string_rendered.get_rect()
-        text_coord += 30
+        text_coord += 10
         intro_rect.top = text_coord
-        intro_rect.x = 400
+        intro_rect.x = 390
         text_coord += intro_rect.height
         screen.blit(string_rendered, intro_rect)
 
