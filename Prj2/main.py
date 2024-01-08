@@ -2,6 +2,7 @@ import os
 import pygame
 import random
 import sys
+import datetime
 
 pygame.init()
 size = width, height = 1000, 500
@@ -58,17 +59,16 @@ def start_screen():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
-            elif event.type == pygame.KEYDOWN or \
-                    event.type == pygame.MOUSEBUTTONDOWN:
+            elif event.type == pygame.MOUSEBUTTONDOWN:
                 return
         pygame.display.flip()
         clock.tick(FPS)
 
 
 def final_screen(bita1_win, bita2_win):
-    final_text = ["          КОНЕЦ", "",
+    final_text = ["             КОНЕЦ", "",
                   "", "",
-                  "   ПОЗДРАВЛЯЮ", "",
+                  "       ПОЗДРАВЛЯЮ", "",
                   "Подсчёт результатов:", "",
                   f"КРАСНАЯ БИТА: {str(bita1_win)}", "",
                   f"СИНЯЯ БИТА: {str(bita2_win)}"]
@@ -79,19 +79,20 @@ def final_screen(bita1_win, bita2_win):
         final_text[2] = "ПОБЕДИЛА СИНЯЯ БИТА"
         color = "blue"
     else:
-        final_text[2] = "НИКТО НЕ ВЫИГРАЛ"
+        final_text[2] = "   НИКТО НЕ ВЫИГРАЛ"
         final_text[4] = ""
         color = "black"
     fon = pygame.transform.scale(load_image('bg.png'), (width, height))
     screen.blit(fon, (0, 0))
     font = pygame.font.Font(None, 35)
     text_coord = 40
+    write_score(final_text)
     for line in final_text:
         string_rendered = font.render(line, 1, pygame.Color(color))
         intro_rect = string_rendered.get_rect()
         text_coord += 10
         intro_rect.top = text_coord
-        intro_rect.x = 390
+        intro_rect.x = 340
         text_coord += intro_rect.height
         screen.blit(string_rendered, intro_rect)
 
@@ -99,8 +100,7 @@ def final_screen(bita1_win, bita2_win):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
-            elif event.type == pygame.KEYDOWN or \
-                    event.type == pygame.MOUSEBUTTONDOWN:
+            elif event.type == pygame.MOUSEBUTTONDOWN:
                 return
         pygame.display.flip()
         clock.tick(FPS)
@@ -136,6 +136,16 @@ def make_text(bita1, bita2):
         score_rect.top = 40
         score_rect.x = text_coord
         screen.blit(string_rendered, score_rect)
+
+
+def write_score(result):
+    today = datetime.datetime.today().strftime("%d-%m-%Y-%H:%M:%S")
+    with open('score.txt', 'a', encoding="UTF-8") as score_result:
+        score_result.write(today + '\n')
+        score_result.write(result[2] + '\n')
+        for i in range(8, 11, 2):
+            score_result.write(result[i] + '\n')
+        score_result.write('\n')
 
 
 class AnimatedPuck(pygame.sprite.Sprite):
