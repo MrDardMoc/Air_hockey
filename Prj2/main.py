@@ -8,6 +8,7 @@ pygame.init()
 size = width, height = 1000, 500
 screen_rect = (0, 0, width, height)
 speed = 4
+GRAVITY = 5
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption('Аэрохоккей')
 clock = pygame.time.Clock()
@@ -142,7 +143,7 @@ def write_score(result):
     today = datetime.datetime.today().strftime("%d-%m-%Y-%H:%M:%S")
     with open('score.txt', 'a', encoding="UTF-8") as score_result:
         score_result.write(today + '\n')
-        score_result.write(result[2] + '\n')
+        score_result.write(result[2].strip() + '\n')
         for i in range(8, 11, 2):
             score_result.write(result[i] + '\n')
         score_result.write('\n')
@@ -186,23 +187,21 @@ class AnimatedPuck(pygame.sprite.Sprite):
         if pygame.sprite.spritecollideany(self, bits):
             if self.rect.x > 500:
                 if ((bita2.rect.x - self.rect.x > 0 and self.vx > 0) or
-                        (bita2.rect.x - self.rect.x < 0 and self.vx < 0)):
+                        (bita2.rect.x - self.rect.x < 0 and self.vx < 0) or
+                        (bita2.rect.y - self.rect.y == 0)):
                     self.vx = -self.vx
-                elif ((bita2.rect.x - self.rect.x > 0 > self.vx)
-                      or (bita2.rect.x - self.rect.x < 0 < self.vx)):
-                    self.vy = -self.vy
-                else:
-                    self.vx = -self.vx
+                elif ((bita2.rect.x - self.rect.x > 0 > self.vx) or
+                        (bita2.rect.x - self.rect.x < 0 < self.vx) or
+                        (bita2.rect.x - self.rect.x == 0)):
                     self.vy = -self.vy
             if self.rect.x < 500:
                 if ((bita1.rect.x - self.rect.x < 0 and self.vx < 0) or
-                        (bita1.rect.x - self.rect.x > 0 and self.vx > 0)):
+                        (bita1.rect.x - self.rect.x > 0 and self.vx > 0) or
+                        (bita1.rect.y - self.rect.y == 0)):
                     self.vx = -self.vx
-                elif ((bita1.rect.x - self.rect.x < 0 < self.vx)
-                      or (bita1.rect.x - self.rect.x > 0 > self.vx)):
-                    self.vy = -self.vy
-                else:
-                    self.vx = -self.vx
+                elif ((bita1.rect.x - self.rect.x < 0 < self.vx) or
+                        (bita1.rect.x - self.rect.x > 0 > self.vx) or
+                        (bita1.rect.x - self.rect.x == 0)):
                     self.vy = -self.vy
 
         if self.rect.left < 0 or self.rect.left > 1000:
