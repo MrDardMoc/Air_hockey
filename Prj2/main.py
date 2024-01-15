@@ -242,6 +242,7 @@ vertical_borders = pygame.sprite.Group()
 bits = pygame.sprite.Group()
 
 radius = 30
+
 bita1_image = pygame.Surface((2 * radius, 2 * radius), pygame.SRCALPHA, 32)
 pygame.draw.circle(bita1_image, pygame.Color("Red"), (radius, radius), radius)
 bita1 = pygame.sprite.Sprite(bits)
